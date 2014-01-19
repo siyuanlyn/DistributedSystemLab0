@@ -42,8 +42,6 @@ public class MessagePasser {
 		configList = (ArrayList<LinkedHashMap<String, String>>) networkTable.get("configuration");
 		sendRuleList = (ArrayList<LinkedHashMap<String, String>>) networkTable.get("sendRules");
 		receiveRuleList = (ArrayList<LinkedHashMap<String, String>>) networkTable.get("receiveRules");
-		System.out.println(sendRuleList.toString());
-		System.out.println(receiveRuleList.toString());
 		for(Map m : configList){
 			String name = (String)m.get("name");
 			String ip = (String)m.get("ip");
@@ -59,7 +57,6 @@ public class MessagePasser {
 	void send(Message message) throws UnknownHostException, IOException{
 		System.out.println("sending..................");
 		message.set_action(checkSendingRules(message));
-		System.out.println(message.action);
 		switch(message.action){
 		case "drop":
 			//do nothing, just drop it
@@ -82,6 +79,10 @@ public class MessagePasser {
 
 	void sendMessage(Message message) throws IOException{
 		if(!socketMap.containsKey(message.destination)){
+			if(!nodeMap.containsKey(message.destination)){
+				System.err.println("Can't find this node in configuration file!");
+				return;
+			}
 			Socket destSocket = new Socket(InetAddress.getByName(nodeMap.get(message.destination).ip), nodeMap.get(message.destination).port);
 			socketMap.put(message.destination, destSocket);
 			ObjectOutputStream oos = new ObjectOutputStream(destSocket.getOutputStream());
@@ -108,7 +109,7 @@ public class MessagePasser {
 		Message receivedMessage;
 		if(!messageQueue.isEmpty()){
 			receivedMessage = messageQueue.poll();
-			System.out.println("message received.....");
+			System.out.println("Receiving..................");
 			String action = checkReceivingRules(receivedMessage);
 			switch(action){
 			case "drop":
