@@ -3,7 +3,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 public class Application {
-	
+	final static String usage = "Enter the name of people you'd like to send message to,"
+							  + " the kind of message and the message as follows:"
+					          + " \nbob/Ack/Catch one's heart, never be apart.";
 	static int sequenceNumber = 0;
 	public static int generateSeqNum(){
 		return sequenceNumber++;
@@ -15,16 +17,17 @@ public class Application {
 		listenerThread.start();
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 		while(true){
-			System.out.println("What do you want to do?!?! send or receive?!?!");
-			String method = in.readLine();
-			String dest, sendingMessage;
-			switch(method){
+			System.out.println("Enter the command you want to excute: send or receive");
+			String command = in.readLine();
+			String dest, kind, sendingMessage;	
+			switch(command){
 			case "send":
-				System.out.println("Who do you want to send to?");
-				dest = in.readLine();
-				System.out.println("What do you want to say?");
-				sendingMessage = in.readLine();
-				Message message = new Message(dest,"Ack", sendingMessage);
+				System.out.println(usage);
+				String[] input = in.readLine().split("/");
+				dest = input[0];
+				kind = input[1];
+				sendingMessage = input[2];
+				Message message = new Message(dest,kind, sendingMessage);
 				message.set_source(args[1]);
 				message.set_seqNum(generateSeqNum());
 				messagePasser.send(message);
