@@ -1,6 +1,7 @@
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.InetAddress;
@@ -21,6 +22,7 @@ public class MessagePasser {
 	LinkedHashMap networkTable;
 	HashMap<String, Node> nodeMap = new HashMap<String, Node>();
 	HashMap<String, Socket> socketMap = new HashMap<String, Socket>();
+	HashMap<String, ObjectOutputStream> streamMap= new HashMap<String, ObjectOutputStream>();
 	ServerSocket serverSocket;
 	ConcurrentLinkedQueue<Message> messageQueue = new ConcurrentLinkedQueue<Message>();
 	ArrayList<LinkedHashMap<String, String>> configList;
@@ -78,10 +80,13 @@ public class MessagePasser {
 		if(!socketMap.containsKey(message.destination)){
 			Socket destSocket = new Socket(InetAddress.getByName(nodeMap.get(message.destination).ip), nodeMap.get(message.destination).port);
 			socketMap.put(message.destination, destSocket);
+			ObjectOutputStream oos = new ObjectOutputStream(destSocket.getOutputStream());
+			streamMap.put(message.destination, oos);
 		}
-		Socket destSocket = socketMap.get(message.destination);
-		PrintWriter out = new PrintWriter(new OutputStreamWriter(destSocket.getOutputStream()),true);
-		out.println(message);
+//		Socket destSocket = socketMap.get(message.destination);
+//		PrintWriter out = new PrintWriter(new OutputStreamWriter(destSocket.getOutputStream()),true);
+//		out.println(message);
+		streamMap.get(message.destination).writeObject(message);
 	}
 
 	Message receive(){
@@ -89,11 +94,11 @@ public class MessagePasser {
 		Message receivedMessage;
 		if(!messageQueue.isEmpty()){
 			receivedMessage = messageQueue.poll();
-			return receivedMessage;
 		}
 		else{
-			return null;
+			receivedMessage = new Message(null, null, "No data in the queue");
 		}
+		return receivedMessage;
 	}
 
 	String checkSendingRules(Message message){
