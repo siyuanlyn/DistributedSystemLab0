@@ -11,7 +11,7 @@ public class Application {
 		return sequenceNumber++;
 	}
 
-	public static void main(String[] args) throws IOException{
+	public static void main(String[] args) throws IOException, InterruptedException{
 		MessagePasser messagePasser = new MessagePasser(args[0], args[1]);
 		Thread listenerThread = new ListenerThread(messagePasser.serverSocket, messagePasser.messageQueue);
 		listenerThread.start();
@@ -24,9 +24,11 @@ public class Application {
 				case "send":
 					System.out.println(usage);
 					String[] input = in.readLine().split("/");
-					if(input.length != 3){
+					while(input.length != 3){
 						System.err.println("Illegal input format! Please enter again!");
-						continue;
+						Thread.sleep(1);
+						System.out.println(usage);
+						input = in.readLine().split("/");
 					}
 					dest = input[0];
 					kind = input[1];

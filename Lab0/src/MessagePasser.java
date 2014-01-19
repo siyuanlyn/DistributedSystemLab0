@@ -138,6 +138,7 @@ public class MessagePasser {
 			boolean dstMatch = false;
 			boolean seqMatch = false;
 			boolean kindMatch = false;
+			boolean duplicate = false;
 
 			if(!m.containsKey("src")){
 				srcMatch = true;
@@ -166,11 +167,17 @@ public class MessagePasser {
 			else if(m.get("kind").equals(message.kind)){
 				kindMatch = true;
 			}
-
-			if(srcMatch && dstMatch && seqMatch && kindMatch){
-				return (String)m.get("action");
+			
+			if(!m.containsKey("duplicate")){
+				duplicate = true;
+			}
+			else if(m.get("duplicate").equals(message.duplicate)){
+				duplicate = true;
 			}
 
+			if(srcMatch && dstMatch && seqMatch && kindMatch && duplicate){
+				return (String)m.get("action");
+			}
 		}
 		return "none";
 	}
@@ -183,6 +190,7 @@ public class MessagePasser {
 			boolean dstMatch = false;
 			boolean seqMatch = false;
 			boolean kindMatch = false;
+			boolean duplicate = false;
 
 			if(!m.containsKey("src")){
 				srcMatch = true;
@@ -211,8 +219,15 @@ public class MessagePasser {
 			else if(m.get("kind").equals(message.kind)){
 				kindMatch = true;
 			}
+			
+			if(!m.containsKey("duplicate")){
+				duplicate = true;
+			}
+			else if(m.get("duplicate").equals(message.duplicate)){
+				duplicate = true;
+			}
 
-			if(srcMatch && dstMatch && seqMatch && kindMatch){
+			if(srcMatch && dstMatch && seqMatch && kindMatch && duplicate){
 				return (String)m.get("action");
 			}
 
