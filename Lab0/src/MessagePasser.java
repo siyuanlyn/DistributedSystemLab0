@@ -73,7 +73,7 @@ public class MessagePasser {
 			delaySendingQueue.offer(message);
 			break;
 		default:
-			//do nothing
+			sendMessage(message);
 			break;
 		}
 
@@ -94,16 +94,22 @@ public class MessagePasser {
 	}
 
 	Message receive(){
-		return popReceivingQueue.poll();
-
+		receiveMessage();
+		if(!popReceivingQueue.isEmpty()){
+			Message popMessage = popReceivingQueue.poll();
+			return popMessage;
+		}
+		else{
+			return new Message(null, null, "No message to receive.");
+		}
 	}
 
-	Message receiveMessage(){
+	void receiveMessage(){
 		Message receivedMessage;
 		if(!messageQueue.isEmpty()){
 			receivedMessage = messageQueue.poll();
+			System.out.println("message received.....");
 			String action = checkReceivingRules(receivedMessage);
-
 			switch(action){
 			case "drop":
 				//do nothing, just drop it
@@ -111,13 +117,12 @@ public class MessagePasser {
 			case "duplicate":
 				popReceivingQueue.offer(receivedMessage);
 				popReceivingQueue.offer(receivedMessage);
-
-				return popReceivingQueue.poll();
 			case "delay":
 				delayReceivingQueue.offer(receivedMessage);
 				break;
 			default:
-				return new Message(null, null, "ERROR MATCH RULES");
+				//default action
+				popReceivingQueue.offer(receivedMessage);
 			}
 		}
 
@@ -171,17 +176,40 @@ public class MessagePasser {
 
 	String checkReceivingRules(Message message){
 
-		for(Map m : sendRuleList){
+		for(Map m : receiveRuleList){
 
 			boolean srcMatch = false;
 			boolean dstMatch = false;
 			boolean seqMatch = false;
 			boolean kindMatch = false;
 
-			if(m.get("src").equals(message.source))	            srcMatch = true;
-			if(m.get("dest").equals(message.destination))	    dstMatch = true;
-			if((int)m.get("seqNum") == message.sequenceNumber)	seqMatch = true;
-			if(m.get("kind").equals(message.kind))	            kindMatch = true;
+			if(!m.containsKey("src")){
+				srcMatch = true;
+			}
+			else if(m.get("src").equals(message.source)){
+				srcMatch = true;
+			}
+
+			if(!m.containsKey("dest")){
+				dstMatch = true;
+			}
+			else if(m.get("dest").equals(message.destination)){
+				dstMatch = true;
+			}
+
+			if(!m.containsKey("seqNum")){
+				seqMatch = true;
+			}
+			else if((int)m.get("seqNum") == message.sequenceNumber){
+				seqMatch = true;
+			}
+
+			if(!m.containsKey("kind")){
+				kindMatch = true;
+			}
+			else if(m.get("kind").equals(message.kind)){
+				kindMatch = true;
+			}
 
 			if(srcMatch && dstMatch && seqMatch && kindMatch){
 				return (String)m.get("action");
