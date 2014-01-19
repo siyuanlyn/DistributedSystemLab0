@@ -16,6 +16,7 @@ public class ListenerThread extends Thread{
 		while(true){
 			try {
 				Socket client = serverSocket.accept();
+				System.out.println("accepted: " + client.toString());
 				Thread readInputStreamThread = new ReadInputStream(client, messageQueue);
 				readInputStreamThread.start();
 			} catch (IOException e) {

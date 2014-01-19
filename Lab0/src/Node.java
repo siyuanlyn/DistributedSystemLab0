@@ -6,4 +6,7 @@ public class Node {
 		this.ip = ip;
 		this.port = port;
 	}
+	public String toString(){
+		return ip + "," + Integer.toString(port);
+	}
 }

@@ -13,8 +13,6 @@ public class Application {
 
 	public static void main(String[] args) throws IOException, InterruptedException{
 		MessagePasser messagePasser = new MessagePasser(args[0], args[1]);
-		Thread listenerThread = new ListenerThread(messagePasser.serverSocket, messagePasser.messageQueue);
-		listenerThread.start();
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 		while(true){
 			System.out.println("Enter the command you want to excute: send or receive");
@@ -36,20 +34,15 @@ public class Application {
 					Message message = new Message(dest,kind, sendingMessage);
 					message.set_source(args[1]);
 					message.set_seqNum(generateSeqNum());
-					try{
-						messagePasser.send(message);
-					}
-					catch (IOException e){
-						System.err.println("Connection Fail!");
-					}
+					messagePasser.send(message);
 					break;
 				case "receive":
 					System.out.println(messagePasser.receive().data);
 					break;
 				default:
 					System.err.println("Illegal input format! Please enter again!");
-			}
-			
+				}
+
 		}
 	}
 }

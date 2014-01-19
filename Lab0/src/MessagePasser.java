@@ -1,4 +1,6 @@
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
@@ -31,9 +33,15 @@ public class MessagePasser {
 	ArrayList<LinkedHashMap<String, String>> configList;
 	ArrayList<LinkedHashMap<String, String>> sendRuleList;
 	ArrayList<LinkedHashMap<String, String>> receiveRuleList;
-
-	@SuppressWarnings("unchecked")
-	public MessagePasser(String configuration_filename, String local_name) throws IOException{
+	File configurationFile;
+	long lastModifiedTime;
+	String configuration_filename;
+	String local_name;
+	Thread listenerThread;
+	
+	public void parseConfigurationFile() throws IOException{
+		configurationFile = new File(configuration_filename);
+		lastModifiedTime = configurationFile.lastModified();
 		InputStream input = new FileInputStream(configuration_filename);
 		Yaml yaml = new Yaml();
 		Object data = yaml.load(input);
@@ -49,12 +57,42 @@ public class MessagePasser {
 			nodeMap.put(name, new Node(ip, port));
 		}
 
+		
+	}
+	
+	@SuppressWarnings("unchecked")
+	public MessagePasser(String configuration_filename, String local_name) throws IOException{
+		this.configuration_filename = configuration_filename;
+		this.local_name = local_name;
+		parseConfigurationFile();
 		int portNumber = nodeMap.get(local_name).port;
 		serverSocket = new ServerSocket(portNumber);
-
+		listenerThread = new ListenerThread(serverSocket, messageQueue);
+		listenerThread.start();
 	}
 
 	void send(Message message) throws UnknownHostException, IOException{
+		
+		if(configurationFile.lastModified() > lastModifiedTime){
+
+			lastModifiedTime = configurationFile.lastModified();
+			System.out.println("configuration file modified!!!");
+			nodeMap.clear();
+			System.out.println("nodeMap cleared! "+ nodeMap.toString());
+			socketMap.clear();
+			System.out.println("socketMap cleared! "+ socketMap.toString());
+			streamMap.clear();
+			System.out.println("streamMap cleared! "+ streamMap.toString());
+//			serverSocket.close();
+			
+			System.out.println("reparsing new configuration file!");
+			parseConfigurationFile();
+			System.out.println("reparsing new configuration file done!");
+			System.out.println("nodeMap reparsed! "+ nodeMap.toString());
+			System.out.println("socketMap reparsed! "+ socketMap.toString());
+			System.out.println("streamMap reparsed! "+ streamMap.toString());
+			
+		}
 		System.out.println("sending..................");
 		message.set_action(checkSendingRules(message));
 		switch(message.action){
@@ -74,21 +112,31 @@ public class MessagePasser {
 			break;
 		}
 
-
+		System.out.println("sending done..................");
 	}
 
 	void sendMessage(Message message) throws IOException{
 		if(!socketMap.containsKey(message.destination)){
+			System.out.println("new socket: " + nodeMap.get(message.destination).ip + " " + nodeMap.get(message.destination).port);
 			if(!nodeMap.containsKey(message.destination)){
 				System.err.println("Can't find this node in configuration file!");
 				return;
 			}
-			Socket destSocket = new Socket(InetAddress.getByName(nodeMap.get(message.destination).ip), nodeMap.get(message.destination).port);
-			socketMap.put(message.destination, destSocket);
-			ObjectOutputStream oos = new ObjectOutputStream(destSocket.getOutputStream());
-			streamMap.put(message.destination, oos);
+			try{
+				Socket destSocket = new Socket(InetAddress.getByName(nodeMap.get(message.destination).ip), nodeMap.get(message.destination).port);
+				socketMap.put(message.destination, destSocket);
+				System.out.println("socketMap updated! " + socketMap.toString());
+				ObjectOutputStream oos = new ObjectOutputStream(destSocket.getOutputStream());
+				streamMap.put(message.destination, oos);
+				System.out.println("streamMap updated! " + streamMap.toString());
+				streamMap.get(message.destination).writeObject(message);
+			} catch(IOException e){
+				System.err.println("Connection Fail!");
+				return;
+			}
+			
 		}
-		streamMap.get(message.destination).writeObject(message);
+		
 		while(!delaySendingQueue.isEmpty()){
 			sendMessage(delaySendingQueue.poll());
 		}
@@ -107,9 +155,9 @@ public class MessagePasser {
 
 	void receiveMessage(){
 		Message receivedMessage;
+		System.out.println("Receiving..................");
 		if(!messageQueue.isEmpty()){
 			receivedMessage = messageQueue.poll();
-			System.out.println("Receiving..................");
 			String action = checkReceivingRules(receivedMessage);
 			switch(action){
 			case "drop":
@@ -126,8 +174,7 @@ public class MessagePasser {
 				popReceivingQueue.offer(receivedMessage);
 			}
 		}
-
-
+		System.out.println("Receiving done..................");
 	}
 
 	String checkSendingRules(Message message){
