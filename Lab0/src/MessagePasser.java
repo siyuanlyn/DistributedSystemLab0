@@ -25,6 +25,9 @@ public class MessagePasser {
 	HashMap<String, ObjectOutputStream> streamMap= new HashMap<String, ObjectOutputStream>();
 	ServerSocket serverSocket;
 	ConcurrentLinkedQueue<Message> messageQueue = new ConcurrentLinkedQueue<Message>();
+	ConcurrentLinkedQueue<Message> delaySendingQueue = new ConcurrentLinkedQueue<Message>();
+	ConcurrentLinkedQueue<Message> popReceivingQueue = new ConcurrentLinkedQueue<Message>();
+	ConcurrentLinkedQueue<Message> delayReceivingQueue = new ConcurrentLinkedQueue<Message>();
 	ArrayList<LinkedHashMap<String, String>> configList;
 	ArrayList<LinkedHashMap<String, String>> sendRuleList;
 	ArrayList<LinkedHashMap<String, String>> receiveRuleList;
@@ -52,8 +55,6 @@ public class MessagePasser {
 		serverSocket = new ServerSocket(portNumber);
 
 	}
-	
-	
 
 	void send(Message message) throws UnknownHostException, IOException{
 		System.out.println("sending..................");
@@ -61,44 +62,66 @@ public class MessagePasser {
 		System.out.println(message.action);
 		switch(message.action){
 		case "drop":
-			
+			//do nothing, just drop it
 			break;
 		case "duplicate":
-			
+			sendMessage(message);
+			message.set_duplicate(true);
+			sendMessage(message);
 			break;
 		case "delay":
-			
+			delaySendingQueue.offer(message);
 			break;
-		case "none":
-			
+		default:
+			//do nothing
 			break;
 		}
-		
-		
-		
-		
+
+
+	}
+
+	void sendMessage(Message message) throws IOException{
 		if(!socketMap.containsKey(message.destination)){
 			Socket destSocket = new Socket(InetAddress.getByName(nodeMap.get(message.destination).ip), nodeMap.get(message.destination).port);
 			socketMap.put(message.destination, destSocket);
 			ObjectOutputStream oos = new ObjectOutputStream(destSocket.getOutputStream());
 			streamMap.put(message.destination, oos);
 		}
-//		Socket destSocket = socketMap.get(message.destination);
-//		PrintWriter out = new PrintWriter(new OutputStreamWriter(destSocket.getOutputStream()),true);
-//		out.println(message);
 		streamMap.get(message.destination).writeObject(message);
+		while(!delaySendingQueue.isEmpty()){
+			sendMessage(delaySendingQueue.poll());
+		}
 	}
 
 	Message receive(){
-		
+		return popReceivingQueue.poll();
+
+	}
+
+	Message receiveMessage(){
 		Message receivedMessage;
 		if(!messageQueue.isEmpty()){
 			receivedMessage = messageQueue.poll();
+			String action = checkReceivingRules(receivedMessage);
+
+			switch(action){
+			case "drop":
+				//do nothing, just drop it
+				break;
+			case "duplicate":
+				popReceivingQueue.offer(receivedMessage);
+				popReceivingQueue.offer(receivedMessage);
+
+				return popReceivingQueue.poll();
+			case "delay":
+				delayReceivingQueue.offer(receivedMessage);
+				break;
+			default:
+				return new Message(null, null, "ERROR MATCH RULES");
+			}
 		}
-		else{
-			receivedMessage = new Message(null, null, "No data in the queue");
-		}
-		return receivedMessage;
+
+
 	}
 
 	String checkSendingRules(Message message){
@@ -116,7 +139,7 @@ public class MessagePasser {
 			else if(m.get("src").equals(message.source)){
 				srcMatch = true;
 			}
-			
+
 			if(!m.containsKey("dest")){
 				dstMatch = true;
 			}
@@ -130,7 +153,7 @@ public class MessagePasser {
 			else if((int)m.get("seqNum") == message.sequenceNumber){
 				seqMatch = true;
 			}
-			
+
 			if(!m.containsKey("kind")){
 				kindMatch = true;
 			}
@@ -141,11 +164,11 @@ public class MessagePasser {
 			if(srcMatch && dstMatch && seqMatch && kindMatch){
 				return (String)m.get("action");
 			}
-				
+
 		}
 		return "none";
 	}
-	
+
 	String checkReceivingRules(Message message){
 
 		for(Map m : sendRuleList){
@@ -163,7 +186,7 @@ public class MessagePasser {
 			if(srcMatch && dstMatch && seqMatch && kindMatch){
 				return (String)m.get("action");
 			}
-				
+
 		}
 		return "none";
 	}

@@ -1,6 +1,7 @@
 import java.io.Serializable;
 
 
+@SuppressWarnings("serial")
 public class Message implements Serializable{
 	
 	String source;
@@ -9,6 +10,7 @@ public class Message implements Serializable{
 	String data;
 	int sequenceNumber;
 	String action;
+	boolean duplicate = false;
 	
 	public Message(String dest, String kind, Object data){
 		destination = dest;
@@ -25,7 +27,7 @@ public class Message implements Serializable{
 	}
 	
 	public void set_duplicate(Boolean dupe){
-		
+		duplicate = dupe;
 	}
 	
 	public void set_action(String action){
