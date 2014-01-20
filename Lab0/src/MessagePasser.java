@@ -39,9 +39,9 @@ public class MessagePasser {
 	String local_name;
 	
 	public void parseConfigurationFile() throws IOException{
-		configurationFile = new File(configuration_filename);
+		configurationFile = new File("D:\\Dropbox\\" + configuration_filename);
 		lastModifiedTime = configurationFile.lastModified();
-		InputStream input = new FileInputStream(configuration_filename);
+		InputStream input = new FileInputStream(configurationFile.getName());
 		Yaml yaml = new Yaml();
 		Object data = yaml.load(input);
 		input.close();
@@ -66,14 +66,11 @@ public class MessagePasser {
 		this.configuration_filename = configuration_filename;
 		this.local_name = local_name;
 		parseConfigurationFile();
-		
-		
 	}
 
 	void send(Message message) throws UnknownHostException, IOException{
 		
 		if(configurationFile.lastModified() > lastModifiedTime){
-
 			lastModifiedTime = configurationFile.lastModified();
 			System.out.println("configuration file modified!!!");
 			nodeMap.clear();
@@ -83,7 +80,6 @@ public class MessagePasser {
 			streamMap.clear();
 			System.out.println("streamMap cleared! "+ streamMap.toString());
 			serverSocket.close();
-			
 			System.out.println("reparsing new configuration file!");
 			parseConfigurationFile();
 			System.out.println("reparsing new configuration file done!");
@@ -110,7 +106,6 @@ public class MessagePasser {
 			sendMessage(message);
 			break;
 		}
-
 		System.out.println("sending done..................");
 	}
 
