@@ -39,9 +39,9 @@ public class MessagePasser {
 	String local_name;
 	
 	public void parseConfigurationFile() throws IOException{
-		configurationFile = new File(configuration_filename);
+		configurationFile = new File("D:\\Dropbox\\" + configuration_filename);
 		lastModifiedTime = configurationFile.lastModified();
-		InputStream input = new FileInputStream(configuration_filename);
+		InputStream input = new FileInputStream(configurationFile.getName());
 		Yaml yaml = new Yaml();
 		Object data = yaml.load(input);
 		input.close();

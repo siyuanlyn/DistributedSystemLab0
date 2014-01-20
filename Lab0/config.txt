@@ -12,7 +12,7 @@ configuration :
 
     - name : bob
       ip : localhost
-      port : 33333
+      port : 14255
 
     - name : charlie
       ip : 127.0.0.1
@@ -25,7 +25,7 @@ sendRules :
     - action : drop # Ack message number 4 from bob to alice will not be sent
       src : bob
       dest : alice
-      kind : Ack
+      kind : Lookup
       seqNum : 4
       
     - action : delay # Every Lookup message in the system will be delayed
