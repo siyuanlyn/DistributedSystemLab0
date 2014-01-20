@@ -37,7 +37,6 @@ public class MessagePasser {
 	long lastModifiedTime;
 	String configuration_filename;
 	String local_name;
-	Thread listenerThread;
 	
 	public void parseConfigurationFile() throws IOException{
 		configurationFile = new File(configuration_filename);
@@ -56,8 +55,10 @@ public class MessagePasser {
 			int port = (int)m.get("port");
 			nodeMap.put(name, new Node(ip, port));
 		}
-
-		
+		int portNumber = nodeMap.get(local_name).port;
+		serverSocket = new ServerSocket(portNumber);
+		Thread listenerThread = new ListenerThread(serverSocket, messageQueue);
+		listenerThread.start();
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -65,10 +66,8 @@ public class MessagePasser {
 		this.configuration_filename = configuration_filename;
 		this.local_name = local_name;
 		parseConfigurationFile();
-		int portNumber = nodeMap.get(local_name).port;
-		serverSocket = new ServerSocket(portNumber);
-		listenerThread = new ListenerThread(serverSocket, messageQueue);
-		listenerThread.start();
+		
+		
 	}
 
 	void send(Message message) throws UnknownHostException, IOException{
@@ -83,7 +82,7 @@ public class MessagePasser {
 			System.out.println("socketMap cleared! "+ socketMap.toString());
 			streamMap.clear();
 			System.out.println("streamMap cleared! "+ streamMap.toString());
-//			serverSocket.close();
+			serverSocket.close();
 			
 			System.out.println("reparsing new configuration file!");
 			parseConfigurationFile();
