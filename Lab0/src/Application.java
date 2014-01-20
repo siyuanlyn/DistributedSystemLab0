@@ -4,8 +4,8 @@ import java.io.InputStreamReader;
 
 public class Application {
 	final static String usage = "Enter the name of people you'd like to send message to,"
-			+ " the kind of message and the message as follows:"
-			+ " \nbob/Ack/Catch one's heart, never be apart.";
+							  + " the kind of message and the message as follows:"
+							  + " \nbob/Ack/Catch one's heart, never be apart.";
 	static int sequenceNumber = 0;
 	public static int generateSeqNum(){
 		return sequenceNumber++;
@@ -42,7 +42,6 @@ public class Application {
 				default:
 					System.err.println("Illegal input format! Please enter again!");
 				}
-
 		}
 	}
 }

@@ -13,7 +13,6 @@ public class ListenerThread extends Thread{
 		this.messageQueue = messageQueue;
 	}
 	public void run(){
-		
 		while(true){
 			try {
 				Socket client = serverSocket.accept();
@@ -27,8 +26,6 @@ public class ListenerThread extends Thread{
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} 
-			
 		}
-		
 	}
 }
