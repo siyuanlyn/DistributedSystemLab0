@@ -15,11 +15,11 @@ configuration :
       port : 33333
 
     - name : charlie
-      ip : 127.0.0.1
+      ip : 128.237.116.214
       port : 12998
 
     - name : daphnie
-      ip : 127.0.0.1
+      ip : 128.237.116.214
       port : 1987
 sendRules :
     - action : drop # Ack message number 4 from bob to alice will not be sent
