@@ -15,18 +15,18 @@ public class ReadInputStream extends Thread{
 	}
 
 	@SuppressWarnings("unchecked")
-	public void run(){
+	public void run(){ 
 		while(true){
-			synchronized(messageQueue){
-				try {
-					messageQueue.offer(ois.readObject());
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
+			System.out.println("reading the input stream!");
+			try {
+				messageQueue.offer(ois.readObject());
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
+			catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
+
 		}
 	}
 }

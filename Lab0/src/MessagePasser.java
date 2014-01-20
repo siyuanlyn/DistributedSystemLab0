@@ -129,14 +129,13 @@ public class MessagePasser {
 				ObjectOutputStream oos = new ObjectOutputStream(destSocket.getOutputStream());
 				streamMap.put(message.destination, oos);
 				System.out.println("streamMap updated! " + streamMap.toString());
-				streamMap.get(message.destination).writeObject(message);
+				
 			} catch(IOException e){
 				System.err.println("Connection Fail!");
 				return;
 			}
-			
 		}
-		
+		streamMap.get(message.destination).writeObject(message);
 		while(!delaySendingQueue.isEmpty()){
 			sendMessage(delaySendingQueue.poll());
 		}
@@ -157,6 +156,7 @@ public class MessagePasser {
 		Message receivedMessage;
 		System.out.println("Receiving..................");
 		if(!messageQueue.isEmpty()){
+			System.out.println("message queue is not empty!");
 			receivedMessage = messageQueue.poll();
 			String action = checkReceivingRules(receivedMessage);
 			switch(action){
