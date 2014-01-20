@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 
@@ -20,6 +21,9 @@ public class ReadInputStream extends Thread{
 			System.out.println("reading the input stream!");
 			try {
 				messageQueue.offer(ois.readObject());
+			} catch (SocketException e){
+				System.err.println("Remote socket down.");
+				break;
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

@@ -15,7 +15,7 @@ public class Application {
 		MessagePasser messagePasser = new MessagePasser(args[0], args[1]);
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 		while(true){
-			System.out.println("Enter the command you want to excute: send or receive");
+			System.out.println("Enter the command you want to execute: send or receive");
 			String command = in.readLine();
 			String dest, kind, sendingMessage;	
 			switch(command){
