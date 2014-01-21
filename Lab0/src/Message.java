@@ -1,9 +1,11 @@
 import java.io.Serializable;
 
-
-@SuppressWarnings("serial")
 public class Message implements Serializable{
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	String source;
 	String destination;
 	String kind;
