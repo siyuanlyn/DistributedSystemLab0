@@ -37,7 +37,7 @@ public class Application {
 					messagePasser.send(message);
 					break;
 				case "receive":
-					System.out.println(messagePasser.receive().data);
+					System.out.println(messagePasser.receive().toString());
 					break;
 				default:
 					System.err.println("Illegal input format! Please enter again!");

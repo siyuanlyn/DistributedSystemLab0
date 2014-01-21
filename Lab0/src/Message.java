@@ -33,4 +33,10 @@ public class Message implements Serializable{
 	public void set_action(String action){
 		this.action = action;
 	}
+	
+	public String toString(){
+		return "[source=" + source + "; destination=" + destination + "; kind=" + kind
+				+ "; data=" + data + "; seqNum=" + sequenceNumber + "; action=" + action
+				+ "; duplicate=" + duplicate + "]" ;
+	}
 }

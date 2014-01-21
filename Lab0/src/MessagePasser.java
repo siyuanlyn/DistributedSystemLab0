@@ -41,7 +41,7 @@ public class MessagePasser {
 	public void parseConfigurationFile() throws IOException{
 		configurationFile = new File("D:\\Dropbox\\" + configuration_filename);
 		lastModifiedTime = configurationFile.lastModified();
-		InputStream input = new FileInputStream(configurationFile.getName());
+		InputStream input = new FileInputStream("D:\\Dropbox\\" + configuration_filename);
 		Yaml yaml = new Yaml();
 		Object data = yaml.load(input);
 		input.close();
@@ -49,6 +49,8 @@ public class MessagePasser {
 		configList = (ArrayList<LinkedHashMap<String, String>>) networkTable.get("configuration");
 		sendRuleList = (ArrayList<LinkedHashMap<String, String>>) networkTable.get("sendRules");
 		receiveRuleList = (ArrayList<LinkedHashMap<String, String>>) networkTable.get("receiveRules");
+		System.out.println(sendRuleList.toString());
+		System.out.println(receiveRuleList.toString());
 		for(Map m : configList){
 			String name = (String)m.get("name");
 			String ip = (String)m.get("ip");
@@ -92,17 +94,21 @@ public class MessagePasser {
 		message.set_action(checkSendingRules(message));
 		switch(message.action){
 		case "drop":
+			System.out.println("send: drop");
 			//do nothing, just drop it
 			break;
 		case "duplicate":
+			System.out.println("send: duplicate");
 			sendMessage(message);
 			message.set_duplicate(true);
 			sendMessage(message);
 			break;
 		case "delay":
+			System.out.println("send: delay");
 			delaySendingQueue.offer(message);
 			break;
 		default:
+			System.out.println("send: default");
 			sendMessage(message);
 			break;
 		}
@@ -130,6 +136,8 @@ public class MessagePasser {
 			}
 		}
 		streamMap.get(message.destination).writeObject(message);
+		streamMap.get(message.destination).flush();
+		streamMap.get(message.destination).reset();
 		while(!delaySendingQueue.isEmpty()){
 			sendMessage(delaySendingQueue.poll());
 		}
@@ -155,17 +163,29 @@ public class MessagePasser {
 			String action = checkReceivingRules(receivedMessage);
 			switch(action){
 			case "drop":
+				System.out.println("receive: drop");
 				//do nothing, just drop it
 				break;
 			case "duplicate":
+				System.out.println("receive: duplicate");
 				popReceivingQueue.offer(receivedMessage);
 				popReceivingQueue.offer(receivedMessage);
+				while(!delayReceivingQueue.isEmpty()){
+					popReceivingQueue.offer(delayReceivingQueue.poll());
+				}
+				break;
 			case "delay":
+				System.out.println("receive: delay");
 				delayReceivingQueue.offer(receivedMessage);
+				receiveMessage();
 				break;
 			default:
 				//default action
+				System.out.println("receive: default");
 				popReceivingQueue.offer(receivedMessage);
+				while(!delayReceivingQueue.isEmpty()){
+					popReceivingQueue.offer(delayReceivingQueue.poll());
+				}
 			}
 		}
 		System.out.println("Receiving done..................");
