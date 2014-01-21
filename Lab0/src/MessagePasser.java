@@ -97,6 +97,7 @@ public class MessagePasser {
 		message.set_action(checkSendingRules(message));
 		switch(message.action){
 		case "drop":
+			System.out.println("send: drop");
 			//do nothing, just drop it
 			System.out.println("send: drop");
 			break;
@@ -150,7 +151,6 @@ public class MessagePasser {
 		receiveMessage();
 		if(!popReceivingQueue.isEmpty()){
 			Message popMessage = popReceivingQueue.poll();
-			System.out.println("pop message: " + popMessage.dup);
 			return popMessage;
 		}
 		else{
@@ -166,6 +166,7 @@ public class MessagePasser {
 			String action = checkReceivingRules(receivedMessage);
 			switch(action){
 			case "drop":
+				System.out.println("receive: drop");
 				//do nothing, just drop it
 				System.out.println("receive: drop");
 				break;
@@ -173,14 +174,22 @@ public class MessagePasser {
 				System.out.println("receive: duplicate");
 				popReceivingQueue.offer(receivedMessage);
 				popReceivingQueue.offer(receivedMessage);
+				while(!delayReceivingQueue.isEmpty()){
+					popReceivingQueue.offer(delayReceivingQueue.poll());
+				}
+				break;
 			case "delay":
 				System.out.println("receive: delay");
 				delayReceivingQueue.offer(receivedMessage);
+				receiveMessage();
 				break;
 			default:
 				//default action
 				System.out.println("receive: default");
 				popReceivingQueue.offer(receivedMessage);
+				while(!delayReceivingQueue.isEmpty()){
+					popReceivingQueue.offer(delayReceivingQueue.poll());
+				}
 			}
 		}
 		System.out.println("Receiving done..................");
@@ -227,7 +236,7 @@ public class MessagePasser {
 			if(!m.containsKey("duplicate")){
 				duplicate = true;
 			}
-			else if(m.get("duplicate").equals(message.dup)){
+			else if(m.get("duplicate").equals(message.duplicate)){
 				duplicate = true;
 			}
 
@@ -279,7 +288,7 @@ public class MessagePasser {
 			if(!m.containsKey("duplicate")){
 				duplicate = true;
 			}
-			else if(m.get("duplicate").equals(message.dup)){
+			else if(m.get("duplicate").equals(message.duplicate)){
 				duplicate = true;
 			}
 
