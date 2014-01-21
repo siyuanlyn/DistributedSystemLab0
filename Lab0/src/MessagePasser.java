@@ -41,7 +41,7 @@ public class MessagePasser {
 	public void parseConfigurationFile() throws IOException{
 		configurationFile = new File("D:\\Dropbox\\" + configuration_filename);
 		lastModifiedTime = configurationFile.lastModified();
-		InputStream input = new FileInputStream(configurationFile.getName());
+		InputStream input = new FileInputStream("D:\\Dropbox\\" + configuration_filename);
 		Yaml yaml = new Yaml();
 		Object data = yaml.load(input);
 		input.close();
@@ -49,6 +49,8 @@ public class MessagePasser {
 		configList = (ArrayList<LinkedHashMap<String, String>>) networkTable.get("configuration");
 		sendRuleList = (ArrayList<LinkedHashMap<String, String>>) networkTable.get("sendRules");
 		receiveRuleList = (ArrayList<LinkedHashMap<String, String>>) networkTable.get("receiveRules");
+		System.out.println(sendRuleList.toString());
+		System.out.println(receiveRuleList.toString());
 		for(Map m : configList){
 			String name = (String)m.get("name");
 			String ip = (String)m.get("ip");
@@ -79,6 +81,10 @@ public class MessagePasser {
 			System.out.println("socketMap cleared! "+ socketMap.toString());
 			streamMap.clear();
 			System.out.println("streamMap cleared! "+ streamMap.toString());
+			configList.clear();
+			sendRuleList.clear();
+			receiveRuleList.clear();
+			System.out.println("config and rule list cleared!");
 			serverSocket.close();
 			System.out.println("reparsing new configuration file!");
 			parseConfigurationFile();
@@ -86,23 +92,26 @@ public class MessagePasser {
 			System.out.println("nodeMap reparsed! "+ nodeMap.toString());
 			System.out.println("socketMap reparsed! "+ socketMap.toString());
 			System.out.println("streamMap reparsed! "+ streamMap.toString());
-			
 		}
 		System.out.println("sending..................");
 		message.set_action(checkSendingRules(message));
 		switch(message.action){
 		case "drop":
 			//do nothing, just drop it
+			System.out.println("send: drop");
 			break;
 		case "duplicate":
+			System.out.println("send: duplicate");
 			sendMessage(message);
-			message.set_duplicate(true);
+			message.set_duplicate();
 			sendMessage(message);
 			break;
 		case "delay":
+			System.out.println("send: delay");
 			delaySendingQueue.offer(message);
 			break;
 		default:
+			System.out.println("send: default");
 			sendMessage(message);
 			break;
 		}
@@ -130,6 +139,8 @@ public class MessagePasser {
 			}
 		}
 		streamMap.get(message.destination).writeObject(message);
+		streamMap.get(message.destination).flush();
+		streamMap.get(message.destination).reset();
 		while(!delaySendingQueue.isEmpty()){
 			sendMessage(delaySendingQueue.poll());
 		}
@@ -139,6 +150,7 @@ public class MessagePasser {
 		receiveMessage();
 		if(!popReceivingQueue.isEmpty()){
 			Message popMessage = popReceivingQueue.poll();
+			System.out.println("pop message: " + popMessage.dup);
 			return popMessage;
 		}
 		else{
@@ -150,21 +162,24 @@ public class MessagePasser {
 		Message receivedMessage;
 		System.out.println("Receiving..................");
 		if(!messageQueue.isEmpty()){
-			System.out.println("message queue is not empty!");
 			receivedMessage = messageQueue.poll();
 			String action = checkReceivingRules(receivedMessage);
 			switch(action){
 			case "drop":
 				//do nothing, just drop it
+				System.out.println("receive: drop");
 				break;
 			case "duplicate":
+				System.out.println("receive: duplicate");
 				popReceivingQueue.offer(receivedMessage);
 				popReceivingQueue.offer(receivedMessage);
 			case "delay":
+				System.out.println("receive: delay");
 				delayReceivingQueue.offer(receivedMessage);
 				break;
 			default:
 				//default action
+				System.out.println("receive: default");
 				popReceivingQueue.offer(receivedMessage);
 			}
 		}
@@ -184,14 +199,14 @@ public class MessagePasser {
 			if(!m.containsKey("src")){
 				srcMatch = true;
 			}
-			else if(m.get("src").equals(message.source)){
+			else if(((String)m.get("src")).equalsIgnoreCase(message.source)){
 				srcMatch = true;
 			}
 
 			if(!m.containsKey("dest")){
 				dstMatch = true;
 			}
-			else if(m.get("dest").equals(message.destination)){
+			else if(((String)m.get("dest")).equalsIgnoreCase(message.destination)){
 				dstMatch = true;
 			}
 
@@ -205,14 +220,14 @@ public class MessagePasser {
 			if(!m.containsKey("kind")){
 				kindMatch = true;
 			}
-			else if(m.get("kind").equals(message.kind)){
+			else if(((String)m.get("kind")).equalsIgnoreCase(message.kind)){
 				kindMatch = true;
 			}
 			
 			if(!m.containsKey("duplicate")){
 				duplicate = true;
 			}
-			else if(m.get("duplicate").equals(message.duplicate)){
+			else if(m.get("duplicate").equals(message.dup)){
 				duplicate = true;
 			}
 
@@ -236,14 +251,14 @@ public class MessagePasser {
 			if(!m.containsKey("src")){
 				srcMatch = true;
 			}
-			else if(m.get("src").equals(message.source)){
+			else if(((String)m.get("src")).equalsIgnoreCase(message.source)){
 				srcMatch = true;
 			}
 
 			if(!m.containsKey("dest")){
 				dstMatch = true;
 			}
-			else if(m.get("dest").equals(message.destination)){
+			else if(((String)m.get("dest")).equalsIgnoreCase(message.destination)){
 				dstMatch = true;
 			}
 
@@ -257,14 +272,14 @@ public class MessagePasser {
 			if(!m.containsKey("kind")){
 				kindMatch = true;
 			}
-			else if(m.get("kind").equals(message.kind)){
+			else if(((String)m.get("kind")).equalsIgnoreCase(message.kind)){
 				kindMatch = true;
 			}
 			
 			if(!m.containsKey("duplicate")){
 				duplicate = true;
 			}
-			else if(m.get("duplicate").equals(message.duplicate)){
+			else if(m.get("duplicate").equals(message.dup)){
 				duplicate = true;
 			}
 

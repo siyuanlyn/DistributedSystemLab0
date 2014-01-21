@@ -10,7 +10,7 @@ public class Message implements Serializable{
 	String data;
 	int sequenceNumber;
 	String action;
-	boolean duplicate = false;
+	boolean dup = false;
 	
 	public Message(String dest, String kind, Object data){
 		destination = dest;
@@ -26,11 +26,18 @@ public class Message implements Serializable{
 		this.sequenceNumber = sequenceNumber;
 	}
 	
-	public void set_duplicate(Boolean dupe){
-		duplicate = dupe;
+	public void set_duplicate(){
+		this.dup = true;
 	}
 	
 	public void set_action(String action){
 		this.action = action;
+	}
+	
+	public String toString(){
+		String retString = "[source=" + source + "; destination=" + destination + "; kind=" + kind
+				+"; data=" + data + "; sequence number=" + sequenceNumber + "; action=" + action + 
+				"; duplicate=" + this.dup + "]";
+		return retString;
 	}
 }

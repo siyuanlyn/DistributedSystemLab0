@@ -20,6 +20,7 @@ public class ReadInputStream extends Thread{
 		while(true){
 			System.out.println("reading the input stream!");
 			try {
+
 				messageQueue.offer(ois.readObject());
 			} catch (SocketException e){
 				System.err.println("Remote socket down.");
