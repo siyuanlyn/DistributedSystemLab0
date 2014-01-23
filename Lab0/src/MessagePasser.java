@@ -67,9 +67,8 @@ public class MessagePasser {
 		this.local_name = local_name;
 		parseConfigurationFile();
 	}
-
-	void send(Message message) throws UnknownHostException, IOException{
-		
+	
+	void reconfiguration() throws IOException{
 		if(configurationFile.lastModified() > lastModifiedTime){
 			lastModifiedTime = configurationFile.lastModified();
 			System.out.println("configuration file modified!!!");
@@ -91,6 +90,12 @@ public class MessagePasser {
 			System.out.println("socketMap reparsed! "+ socketMap.toString());
 			System.out.println("streamMap reparsed! "+ streamMap.toString());
 		}
+	}
+
+	void send(Message message) throws UnknownHostException, IOException{
+		
+		reconfiguration();
+		
 		System.out.println("sending..................");
 		message.set_action(checkSendingRules(message));
 		switch(message.action){
@@ -145,7 +150,10 @@ public class MessagePasser {
 		}
 	}
 
-	Message receive(){
+	Message receive() throws IOException{
+		
+		reconfiguration();
+		
 		receiveMessage();
 		if(!popReceivingQueue.isEmpty()){
 			Message popMessage = popReceivingQueue.poll();
