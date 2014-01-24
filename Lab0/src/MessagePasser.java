@@ -47,8 +47,8 @@ public class MessagePasser {
 		configList = (ArrayList<LinkedHashMap<String, String>>) networkTable.get("configuration");
 		sendRuleList = (ArrayList<LinkedHashMap<String, String>>) networkTable.get("sendRules");
 		receiveRuleList = (ArrayList<LinkedHashMap<String, String>>) networkTable.get("receiveRules");
-		System.out.println(sendRuleList.toString());
-		System.out.println(receiveRuleList.toString());
+		//System.out.println(sendRuleList.toString());
+		//System.out.println(receiveRuleList.toString());
 		for(Map m : configList){
 			String name = (String)m.get("name");
 			String ip = (String)m.get("ip");
@@ -71,24 +71,24 @@ public class MessagePasser {
 	void reconfiguration() throws IOException{
 		if(configurationFile.lastModified() > lastModifiedTime){
 			lastModifiedTime = configurationFile.lastModified();
-			System.out.println("configuration file modified!!!");
+			//System.out.println("configuration file modified!!!");
 			nodeMap.clear();
-			System.out.println("nodeMap cleared! "+ nodeMap.toString());
+			//System.out.println("nodeMap cleared! "+ nodeMap.toString());
 			socketMap.clear();
-			System.out.println("socketMap cleared! "+ socketMap.toString());
+			//System.out.println("socketMap cleared! "+ socketMap.toString());
 			streamMap.clear();
-			System.out.println("streamMap cleared! "+ streamMap.toString());
+			//System.out.println("streamMap cleared! "+ streamMap.toString());
 			configList.clear();
 			sendRuleList.clear();
 			receiveRuleList.clear();
-			System.out.println("config and rule list cleared!");
+			//System.out.println("config and rule list cleared!");
 			serverSocket.close();
-			System.out.println("reparsing new configuration file!");
+			//System.out.println("reparsing new configuration file!");
 			parseConfigurationFile();
-			System.out.println("reparsing new configuration file done!");
-			System.out.println("nodeMap reparsed! "+ nodeMap.toString());
-			System.out.println("socketMap reparsed! "+ socketMap.toString());
-			System.out.println("streamMap reparsed! "+ streamMap.toString());
+			//System.out.println("reparsing new configuration file done!");
+			//System.out.println("nodeMap reparsed! "+ nodeMap.toString());
+			//System.out.println("socketMap reparsed! "+ socketMap.toString());
+			//System.out.println("streamMap reparsed! "+ streamMap.toString());
 		}
 	}
 
@@ -96,35 +96,35 @@ public class MessagePasser {
 		
 		reconfiguration();
 		
-		System.out.println("sending..................");
+		//System.out.println("sending..................");
 		message.set_action(checkSendingRules(message));
 		switch(message.action){
 		case "drop":
-			System.out.println("send: drop");
+			//System.out.println("send: drop");
 			//do nothing, just drop it
-			System.out.println("send: drop");
+			//System.out.println("send: drop");
 			break;
 		case "duplicate":
-			System.out.println("send: duplicate");
+			//System.out.println("send: duplicate");
 			sendMessage(message);
 			message.set_duplicate();
 			sendMessage(message);
 			break;
 		case "delay":
-			System.out.println("send: delay");
+			//System.out.println("send: delay");
 			delaySendingQueue.offer(message);
 			break;
 		default:
-			System.out.println("send: default");
+			//System.out.println("send: default");
 			sendMessage(message);
 			break;
 		}
-		System.out.println("sending done..................");
+		//System.out.println("sending done..................");
 	}
 
 	void sendMessage(Message message) throws IOException{
 		if(!socketMap.containsKey(message.destination)){
-			System.out.println("new socket: " + nodeMap.get(message.destination).ip + " " + nodeMap.get(message.destination).port);
+			//System.out.println("new socket: " + nodeMap.get(message.destination).ip + " " + nodeMap.get(message.destination).port);
 			if(!nodeMap.containsKey(message.destination)){
 				System.err.println("Can't find this node in configuration file!");
 				return;
@@ -132,10 +132,10 @@ public class MessagePasser {
 			try{
 				Socket destSocket = new Socket(InetAddress.getByName(nodeMap.get(message.destination).ip), nodeMap.get(message.destination).port);
 				socketMap.put(message.destination, destSocket);
-				System.out.println("socketMap updated! " + socketMap.toString());
+				//System.out.println("socketMap updated! " + socketMap.toString());
 				ObjectOutputStream oos = new ObjectOutputStream(destSocket.getOutputStream());
 				streamMap.put(message.destination, oos);
-				System.out.println("streamMap updated! " + streamMap.toString());
+				//System.out.println("streamMap updated! " + streamMap.toString());
 				
 			} catch(IOException e){
 				System.err.println("Connection Fail!");
@@ -160,24 +160,24 @@ public class MessagePasser {
 			return popMessage;
 		}
 		else{
-			return new Message(null, null, "No message to receive.");
+			return new Message(null, null, "No message to receive!");
 		}
 	}
 
 	void receiveMessage(){
 		Message receivedMessage;
-		System.out.println("Receiving..................");
+		//System.out.println("Receiving..................");
 		if(!messageQueue.isEmpty()){
 			receivedMessage = messageQueue.poll();
 			String action = checkReceivingRules(receivedMessage);
 			switch(action){
 			case "drop":
-				System.out.println("receive: drop");
+				//System.out.println("receive: drop");
 				//do nothing, just drop it
-				System.out.println("receive: drop");
+				//System.out.println("receive: drop");
 				break;
 			case "duplicate":
-				System.out.println("receive: duplicate");
+				//System.out.println("receive: duplicate");
 				popReceivingQueue.offer(receivedMessage);
 				popReceivingQueue.offer(receivedMessage);
 				while(!delayReceivingQueue.isEmpty()){
@@ -185,20 +185,20 @@ public class MessagePasser {
 				}
 				break;
 			case "delay":
-				System.out.println("receive: delay");
+				//System.out.println("receive: delay");
 				delayReceivingQueue.offer(receivedMessage);
 				receiveMessage();
 				break;
 			default:
 				//default action
-				System.out.println("receive: default");
+				//System.out.println("receive: default");
 				popReceivingQueue.offer(receivedMessage);
 				while(!delayReceivingQueue.isEmpty()){
 					popReceivingQueue.offer(delayReceivingQueue.poll());
 				}
 			}
 		}
-		System.out.println("Receiving done..................");
+		//System.out.println("Receiving done..................");
 	}
 
 	String checkSendingRules(Message message){

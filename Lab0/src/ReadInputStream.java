@@ -10,7 +10,7 @@ public class ReadInputStream extends Thread{
 	@SuppressWarnings("rawtypes")
 	ConcurrentLinkedQueue messageQueue;
 	public ReadInputStream(Socket clientSocket, ConcurrentLinkedQueue messageQueue) throws IOException{
-		System.out.println("new input stream: " + clientSocket.toString());
+//		System.out.println("new input stream: " + clientSocket.toString());
 		ois = new ObjectInputStream(clientSocket.getInputStream());
 		this.messageQueue = messageQueue;
 	}
@@ -18,7 +18,7 @@ public class ReadInputStream extends Thread{
 	@SuppressWarnings("unchecked")
 	public void run(){ 
 		while(true){
-			System.out.println("reading the input stream!");
+//			System.out.println("reading the input stream!");
 			try {
 
 				messageQueue.offer(ois.readObject());
